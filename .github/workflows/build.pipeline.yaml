@@ -145,7 +145,7 @@ jobs:
         id: meta
         uses: docker/metadata-action@9ec57ed1fcdbf14dcef7dfbe97b2010124a938b7
         with:
-          images: ${{ env.docker_registry }}/${{ env.docker_image_name }}
+          images: ${{ env.docker_registry }}/crazy-ryan/developer-joyofenergy-python
 
       - name: Build and push Docker image
         id: push
