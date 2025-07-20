@@ -159,6 +159,6 @@ jobs:
       - name: Generate artifact attestation
         uses: actions/attest-build-provenance@v2
         with:
-          subject-name: ${{ env.docker_registry }}/${{ env.docker_image_name}}
+          subject-name: ${{ env.docker_registry }}/crazy-ryan/developer-joyofenergy-python
           subject-digest: ${{ steps.push.outputs.digest }}
           push-to-registry: true
