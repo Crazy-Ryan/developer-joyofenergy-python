@@ -105,7 +105,7 @@ jobs:
         shell: bash
         run: |
           docker build -t ${{ env.docker_image_name }} \
-            -t ${{ env.docker_registry }}/${{ github.repository,, }}/${{ env.docker_image_name }}:latest .
+            -t ${{ env.docker_registry }}/crazy-ryan/developer-joyofenergy-python/${{ env.docker_image_name }}:latest .
 
       - name: Run Trivy vulnerability scanner
         uses: aquasecurity/trivy-action@master
