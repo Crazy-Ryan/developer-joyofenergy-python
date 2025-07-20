@@ -92,32 +92,73 @@ jobs:
           docker pull hadolint/hadolint
           docker run --rm -i hadolint/hadolint < Dockerfile
 
-  containerization:
+#  containerization:
+#    runs-on: ubuntu-latest
+#    needs:
+#      - testing
+#      - linting
+#    steps:
+#      - name: Checkout repository
+#        uses: actions/checkout@v4
+#
+#      - name: Building image
+#        shell: bash
+#        run: |
+#          docker build -t ${{ env.docker_image_name }} \
+#            -t ${{ env.docker_registry }}/${{ github.repository.toLowerCase() }}/${{ env.docker_image_name }}:latest .
+#
+#      - name: Run Trivy vulnerability scanner
+#        uses: aquasecurity/trivy-action@master
+#        with:
+#          image-ref: ${{ env.docker_image_name }}
+#          format: 'sarif'
+#          vuln-type: 'library'
+#          severity: 'CRITICAL,HIGH'
+#          output: 'trivy-results.sarif'
+#
+#      - name: Upload Trivy scan results
+#        uses: github/codeql-action/upload-sarif@v3
+#        if: always()
+#        with:
+#          sarif_file: 'trivy-results.sarif'
+  build-and-push-image:
     runs-on: ubuntu-latest
-    needs:
-      - testing
-      - linting
+
+
+    permissions:
+      contents: read
+      packages: write
+      attestations: write
+      id-token: write
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
-
-      - name: Building image
-        shell: bash
-        run: |
-          docker build -t ${{ env.docker_image_name }} \
-            -t ${{ env.docker_registry }}/${{ github.repository.toLowerCase() }}/${{ env.docker_image_name }}:latest .
-
-      - name: Run Trivy vulnerability scanner
-        uses: aquasecurity/trivy-action@master
+      - name: Log in to the Container registry
+        uses: docker/login-action@65b78e6e13532edd9afa3aa52ac7964289d1a9c1
         with:
-          image-ref: ${{ env.docker_image_name }}
-          format: 'sarif'
-          vuln-type: 'library'
-          severity: 'CRITICAL,HIGH'
-          output: 'trivy-results.sarif'
+          registry: ${{ env.docker_registry }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Upload Trivy scan results
-        uses: github/codeql-action/upload-sarif@v3
-        if: always()
+      - name: Extract metadata (tags, labels) for Docker
+        id: meta
+        uses: docker/metadata-action@9ec57ed1fcdbf14dcef7dfbe97b2010124a938b7
         with:
-          sarif_file: 'trivy-results.sarif'
+          images: ${{ env.docker_registry }}/${{ env.docker_image_name }}
+
+      - name: Build and push Docker image
+        id: push
+        uses: docker/build-push-action@f2a1d5e99d037542a71f64918e516c093c6f3fc4
+        with:
+          context: .
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+
+      - name: Generate artifact attestation
+        uses: actions/attest-build-provenance@v2
+        with:
+          subject-name: ${{ env.docker_registry }}/${{ env.docker_image_name}}
+          subject-digest: ${{ steps.push.outputs.digest }}
+          push-to-registry: true
