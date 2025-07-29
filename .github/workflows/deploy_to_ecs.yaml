@@ -1,4 +1,6 @@
 name: Deploy to ECS
+on:
+  workflow_dispatch:
 
 jobs:
   deploy:
