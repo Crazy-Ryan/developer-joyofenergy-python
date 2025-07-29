@@ -15,6 +15,7 @@ jobs:
       uses: aliyun/acr-login@v1
       with:
         login-server: ${{ secrets.ACR_REGISTRY }}
+        region-id: 'cn-beijing'
         username: ${{ secrets.ACR_USER_NAME }}
         password: ${{ secrets.ACR_PASSWORD }}
 
