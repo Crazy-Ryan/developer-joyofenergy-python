@@ -21,7 +21,7 @@ jobs:
     - name: Deploy Container
       env:
         ECS_HOST: ${{ secrets.ECS_HOST }}
-        IMAGE_URI: ${{ secrets.ACR_REGISTRY }}/crazy_ryan/joy-of-energy:latest
+        IMAGE_URI: `${{ secrets.ACR_REGISTRY }}/crazy_ryan/joy-of-energy:latest`
       run: |
         ssh -o StrictHostKeyChecking=no root@$ECS_HOST << EOF
         docker pull $IMAGE_URI
