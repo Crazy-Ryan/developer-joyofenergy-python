@@ -1,0 +1,29 @@
+name: Deploy to ECS
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Configure SSH
+      uses: webfactory/ssh-agent@v0.7.0
+      with:
+        ssh-private-key: ${{ secrets.ECS_SSH_KEY }}
+
+    - name: Login to ACR
+      uses: aliyun/acr-login@v1
+      with:
+        login-server: ${{ secrets.ACR_REGISTRY }}
+        username: ${{ secrets.ACR_USER_NAME }}
+        password: ${{ secrets.ACR_PASSWORD }}
+
+    - name: Deploy Container
+      env:
+        ECS_HOST: ${{ secrets.ECS_HOST }}
+        IMAGE_URI: ${{ secrets.ACR_REGISTRY }}/crazy_ryan/joy-of-energy:latest
+      run: |
+        ssh -o StrictHostKeyChecking=no root@$ECS_HOST << EOF
+        docker pull $IMAGE_URI
+        docker stop app || true
+        docker rm app || true
+        docker run -d --name app -p 8020:8020 $IMAGE_URI
+        EOF
