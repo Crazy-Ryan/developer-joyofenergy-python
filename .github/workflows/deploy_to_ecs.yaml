@@ -18,9 +18,6 @@ jobs:
 
     environment: ${{ inputs.environment }}
 
-    env:
-      API_KEY: "" # This will be set below
-
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
