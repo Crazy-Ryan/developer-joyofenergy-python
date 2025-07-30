@@ -11,6 +11,10 @@ on:
           - development
           - staging
           - production
+      tag:
+        description: 'Docker image tag to deploy (SHA or git tag like v1.0.0)'
+        required: true
+        type: string
 
 jobs:
   deploy:
@@ -52,11 +56,20 @@ jobs:
           username: ${{ secrets.ACR_USERNAME }}
           password: ${{ secrets.ACR_PASSWORD }}
 
+      - name: Validate Image Exists
+        run: |
+          echo "Checking if image ${{ secrets.ACR_REGISTRY }}/crazy_ryan/joy-of-energy:${{ inputs.tag }} exists..."
+          if ! docker pull ${{ secrets.ACR_REGISTRY }}/crazy_ryan/joy-of-energy:${{ inputs.tag }} > /dev/null 2>&1; then
+            echo "❌ Image ${{ secrets.ACR_REGISTRY }}/crazy_ryan/joy-of-energy:${{ inputs.tag }} not found!"
+            exit 1
+          fi
+          echo "✅ Image found successfully"
+
       - name: Deploy Container
         env:
-          IMAGE_URI: '${{ secrets.ACR_REGISTRY }}/crazy_ryan/joy-of-energy:latest'
+          IMAGE_URI: '${{ secrets.ACR_REGISTRY }}/crazy_ryan/joy-of-energy:${{ inputs.tag }}'
         run: |
-          echo "Deploying to the ${{ inputs.environment }} environment..."
+          echo "Deploying tag ${{ inputs.tag }} to the ${{ inputs.environment }} environment..."
           ssh -o StrictHostKeyChecking=no root@${{ env.ECS_HOST }} << EOF
           docker pull $IMAGE_URI
           docker stop app || true
