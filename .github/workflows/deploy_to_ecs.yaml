@@ -25,13 +25,13 @@ jobs:
         run: |
           if [ "${{ inputs.environment }}" = "development" ]; then
             echo "ECS_HOST=${{ secrets.DEV_ECS_HOST }}" >> $GITHUB_ENV
-            echo "API_KEY_DIGEST_TO_USER=${{ secrets.DEV_API_KEY_DIGEST_TO_USER }}" >> $GITHUB_ENV
+            echo "API_KEY_DIGESTS=${{ secrets.DEV_API_KEY_DIGESTS }}" >> $GITHUB_ENV
           elif [ "${{ inputs.environment }}" = "staging" ]; then
             echo "ECS_HOST=${{ secrets.STG_ECS_HOST }}" >> $GITHUB_ENV
-            echo "API_KEY_DIGEST_TO_USER=${{ secrets.STG_API_KEY_DIGEST_TO_USER }}" >> $GITHUB_ENV
+            echo "API_KEY_DIGESTS=${{ secrets.STG_API_KEY_DIGESTS }}" >> $GITHUB_ENV
           elif [ "${{ inputs.environment }}" = "production" ]; then
             echo "ECS_HOST=${{ secrets.PROD_ECS_HOST }}" >> $GITHUB_ENV
-            echo "API_KEY_DIGEST_TO_USER=${{ secrets.PROD_API_KEY_DIGEST_TO_USER }}" >> $GITHUB_ENV
+            echo "API_KEY_DIGESTS=${{ secrets.PROD_API_KEY_DIGESTS }}" >> $GITHUB_ENV
           fi
 
       - name: Configure Development SSH
@@ -77,5 +77,5 @@ jobs:
           docker pull $IMAGE_URI
           docker stop app || true
           docker rm app || true
-          docker run -d --name app -p 8020:8020 -e API_KEY_DIGEST_TO_USER='${{ env.API_KEY_DIGEST_TO_USER }}' $IMAGE_URI
+          docker run -d --name app -p 8020:8020 -e API_KEY_DIGESTS='${{ env.API_KEY_DIGESTS }}' $IMAGE_URI
           EOF
