@@ -10,7 +10,7 @@ from .router import api_router
 
 
 def create_app() -> FastAPI:
-    app = FastAPI(title="JoyEnergy", description="energy of joy")
+    app = FastAPI(title="JoyEnergy", description="Energy of Joy")
 
     app.include_router(api_router)
 
