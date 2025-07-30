@@ -46,7 +46,6 @@ jobs:
       - name: Build and Deploy
         run: |
           echo "Deploying to the ${{ inputs.environment }} environment..."
-          echo "Using API Key: $API_KEY"
 
       - name: Configure SSH
         uses: webfactory/ssh-agent@v0.7.0
