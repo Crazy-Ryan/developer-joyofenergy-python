@@ -15,29 +15,34 @@ on:
 jobs:
   deploy:
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        config:
-          - env: development
-            ecs_host: ${{ secrets.DEV_ECS_HOST }}
-            ecs_ssh_key: ${{ secrets.DEV_ECS_SSH_KEY }}
-          - env: staging
-            ecs_host: ${{ secrets.STG_ECS_HOST }}
-            ecs_ssh_key: ${{ secrets.STG_ECS_SSH_KEY }}
-          - env: production
-            ecs_host: ${{ secrets.PROD_ECS_HOST }}
-            ecs_ssh_key: ${{ secrets.PROD_ECS_SSH_KEY }}
-
-    if: inputs.environment == matrix.config.env
 
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
 
+      - name: Set Environment Secrets
+        run: |
+          if [[ "${{ inputs.environment }}" == "development" ]]; then
+            echo "ECS_HOST=${{ secrets.DEV_ECS_HOST }}" >> $GITHUB_ENV
+            echo "ECS_SSH_KEY<<EOF" >> $GITHUB_ENV
+            echo "${{ secrets.DEV_ECS_SSH_KEY }}" >> $GITHUB_ENV
+            echo "EOF" >> $GITHUB_ENV
+          elif [[ "${{ matrix.env }}" == "staging" ]]; then
+            echo "ECS_HOST=${{ secrets.STG_ECS_HOST }}" >> $GITHUB_ENV
+            echo "ECS_SSH_KEY<<EOF" >> $GITHUB_ENV
+            echo "${{ secrets.STG_ECS_SSH_KEY }}" >> $GITHUB_ENV
+            echo "EOF" >> $GITHUB_ENV
+          elif [[ "${{ matrix.env }}" == "production" ]]; then
+            echo "ECS_HOST=${{ secrets.PROD_ECS_HOST }}" >> $GITHUB_ENV
+            echo "ECS_SSH_KEY<<EOF" >> $GITHUB_ENV
+            echo "${{ secrets.PROD_ECS_SSH_KEY }}" >> $GITHUB_ENV
+            echo "EOF" >> $GITHUB_ENV
+          fi
+
       - name: Configure SSH
         uses: webfactory/ssh-agent@v0.7.0
         with:
-          ssh-private-key: ${{ matrix.config.ecs_ssh_key }}
+          ssh-private-key: $ECS_SSH_KEY
 
       - name: Login to ACR
         uses: docker/login-action@v3
@@ -48,10 +53,9 @@ jobs:
 
       - name: Deploy Container
         env:
-          ECS_HOST: ${{ matrix.config.ecs_host }}
           IMAGE_URI: '${{ secrets.ACR_REGISTRY }}/crazy_ryan/joy-of-energy:latest'
         run: |
-          echo "Deploying to ${{ inputs.environment }}..."
+          echo "Deploying to the ${{ inputs.environment }} environment..."
           ssh -o StrictHostKeyChecking=no root@$ECS_HOST << EOF
           docker pull $IMAGE_URI
           docker stop app || true
