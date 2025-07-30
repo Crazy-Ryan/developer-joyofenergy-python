@@ -21,19 +21,29 @@ jobs:
         run: |
           if [ "${{ inputs.environment }}" = "development" ]; then
             echo "ECS_HOST=${{ secrets.DEV_ECS_HOST }}" >> $GITHUB_ENV
-            echo "SSH_KEY=${{ secrets.DEV_ECS_SSH_KEY }}" >> $GITHUB_ENV
           elif [ "${{ inputs.environment }}" = "staging" ]; then
             echo "ECS_HOST=${{ secrets.STG_ECS_HOST }}" >> $GITHUB_ENV
-            echo "SSH_KEY=${{ secrets.STG_ECS_SSH_KEY }}" >> $GITHUB_ENV
           elif [ "${{ inputs.environment }}" = "production" ]; then
             echo "ECS_HOST=${{ secrets.PROD_ECS_HOST }}" >> $GITHUB_ENV
-            echo "SSH_KEY=${{ secrets.PROD_ECS_SSH_KEY }}" >> $GITHUB_ENV
           fi
 
-      - name: Configure SSH
+      - name: Configure Development SSH
+        if: inputs.environment == 'development'
         uses: webfactory/ssh-agent@v0.7.0
         with:
-          ssh-private-key: ${{ env.SSH_KEY }}
+          ssh-private-key: ${{ secrets.DEV_ECS_SSH_KEY }}
+
+      - name: Configure Staging SSH
+        if: inputs.environment == 'staging'
+        uses: webfactory/ssh-agent@v0.7.0
+        with:
+          ssh-private-key: ${{ secrets.STG_ECS_SSH_KEY }}
+
+      - name: Configure Production SSH
+        if: inputs.environment == 'production'
+        uses: webfactory/ssh-agent@v0.7.0
+        with:
+          ssh-private-key: ${{ secrets.PROD_ECS_SSH_KEY }}
 
       - name: Login to ACR
         uses: docker/login-action@v3
